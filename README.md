@@ -1,1 +1,1 @@
-# embedded_sw_course
+대한상공회의소_AI 시스템 반도체 SW 개발
