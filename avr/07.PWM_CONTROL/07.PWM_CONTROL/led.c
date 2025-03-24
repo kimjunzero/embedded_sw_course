@@ -1,0 +1,279 @@
+﻿/*
+ * led.c
+ *
+ * Created: 2025-03-05 오전 10:21:53
+ *  Author: microsoft
+ */ 
+
+#include "led.h"
+#define FUNC_NUMER 8
+
+int led_main(void);   // 선언
+
+extern volatile int msec_count;
+void make_pwm_led_control(void);
+int state=0;
+void (*fp[]) () = 
+{
+   led_all_off, // 초기화 상태
+   led_all_on,
+   led_all_off,
+   shift_left_ledon,
+   shift_right_ledon,
+   shift_left_keep_ledon,
+   shift_right_keep_ledon,
+   flower_on,
+   flower_off
+};
+
+
+int led_main(void)   // 정의 
+{
+   DDRA = 0xff;   // PORTA에 연결된 pin8개를 output mode로 
+
+#if 1
+   while(1)
+   {
+      fp[state]();
+   }
+#else    
+   while(1) 
+   {
+      shift_left_ledon();  // state 0
+      shift_right_ledon(); // state 1
+      shift_left_keep_ledon();  // 2 
+      shift_right_keep_ledon(); // 3
+      flower_on(); // 4
+      flower_off(); // 5
+   }   
+#endif 
+}
+
+void flower_on(void)
+{
+#if 1
+   static int i=0;
+
+   if (msec_count >= 100)
+   {
+      msec_count=0;
+      if (i >= 4)
+      {
+         i=PORTA=0x00;
+         //state_transition();   // state를 천이 to shift_right_keep_ledon
+      }
+      else
+      {
+         PORTA |= 0x10 << i | 0x08 >> i++;
+      }
+   }
+#else   // org 
+   PORTA=0;
+   for (int i=0; i < 4; i++)
+   {
+      PORTA |= 0x10 << i | 0x08 >> i;
+      _delay_ms(30);
+   }
+#endif 
+}
+
+void flower_off(void)
+{
+   unsigned char h=0xf0;
+   unsigned char l=0x0f;
+   
+#if 1
+static int i=0;
+
+if (msec_count >= 30)
+{
+   msec_count=0;
+   if (i >= 4)
+   {
+      i=PORTA=0x00;
+      //state_transition();   // state를 천이 to shift_right_keep_ledon
+   }
+   else
+   {
+      PORTA = ( ((h >> i) & 0xf0) | ((l << i) & 0x0f));
+      i++;
+   }
+}
+#else
+   PORTA=0;
+   for (int i=0; i < 4; i++)
+   {
+      PORTA = (h >> i) & 0xf0 | (l << i) & 0x0f;
+      _delay_ms(30);
+   }
+   PORTA=0;
+   _delay_ms(30);
+#endif 
+}
+
+void shift_left_keep_ledon(void)
+{
+#if 1
+static int i=0;
+
+   if (msec_count >= 30)
+   {
+      msec_count=0;
+      if (i >= 8)
+      {
+         i = PORTA = 0x00;
+         //state_transition();  // state를 천이 to shift_right_keep_ledon
+      }
+      else
+      {
+         PORTA =PORTA |= 0b00000001 << i++;
+      }
+   }
+#else
+   for (int i=0; i < 8; i++)
+   {
+      PORTA |= 0b00000001 << i;
+      //               1 i=0;
+      //        00000010 i=1;
+      //        10000000 i=7;
+      _delay_ms(30);
+   }
+#endif    
+}
+void shift_right_keep_ledon(void)
+{
+#if 1
+   static int i=0;
+
+   if (msec_count >= 30)
+   {
+      msec_count=0;
+      if (i >= 8)
+      {
+         i=PORTA=0x00;
+         //state_transition();   // state를 천이 to shift_right_keep_ledon
+      }
+      else
+      {
+         PORTA |= 0b10000000 >> i++;
+      }
+   }
+#else 
+   static int i=0;
+      
+   PORTA=0;
+   for (int i=0; i < 8; i++)
+   {
+      PORTA |= 0b10000000 >> i;
+      //        10000000 i=0;
+      //        01000000 i=1;
+      _delay_ms(30);
+   }   
+#endif 
+}
+void shift_left_ledon(void)
+{
+#if 1 
+   // (1)for문 제거  (2) _delay_ms(30) 제거
+   static int i=0;
+   
+   if (msec_count >= 30)
+   {
+      msec_count=0;
+      if (i >= 8)
+      {
+         i=PORTA=0;
+         //state_transition();
+      }
+      else
+      {
+         PORTA = 0b00000001 << i++;  // (1) PORTA = 0b00000001 << i  (2) i++
+      }
+   } 
+#else   // org
+   for (int i=0; i < 8; i++)
+   {
+      PORTA = 0b00000001 << i;
+      //               1 i=0;
+       //        00000010 i=1;
+       //        10000000 i=7;
+      _delay_ms(30);
+   }
+#endif       
+}
+
+void shift_right_ledon(void)
+{
+#if 1
+   static int i=0;
+
+   if (msec_count >= 30)
+   {
+      msec_count=0;
+      if (i >= 8)
+      {
+         i=PORTA=0x00;
+         //state_transition();   // state를 천이 to shift_left_keep_ledon
+      }
+      else
+      {
+         PORTA = 0b10000000 >> i++;
+      }
+   }
+#else  // org
+   PORTA=0;
+   for (int i=0; i < 8; i++)
+   {
+      PORTA = 0b10000000 >> i;
+      //        10000000 i=0;
+      //        01000000 i=1;
+      _delay_ms(30);
+   }
+#endif 
+}
+
+void led_all_on(void)
+{
+   PORTA = 0xff;
+}
+
+void led_all_off(void)
+{
+   PORTA = 0x00;
+}
+
+void state_transition(void)
+{
+   state++;
+   state %= FUNC_NUMER;
+}
+
+void make_pwm_led_control(void)
+{
+	int dim = 0;       // LED밝기 조정 변수
+	int direction = 1; // 1 : 밝기 증가 모드, -1 : 감소
+	
+	DDRA = 0xff;
+	PORTA = 0xff;   // led_on
+	// drak --> bright bright --> dark
+	
+	while(1)
+	{
+		led_on_pwm(dim);
+		dim += direction;
+		if(dim == 255) direction = -1;
+		if(dim == 0) direction = 1;
+	}
+}
+
+void led_on_pwm(int dim)
+{
+	PORTA = 0xff;
+	
+	for(int i = 0; i < 256; i++)
+	{
+		if(i > dim)
+			PORTA = 0;   // duty cycle이 max을 넘어 가면 led all off
+		_delay_us(20);
+	}
+}

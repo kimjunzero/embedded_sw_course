@@ -1,0 +1,18 @@
+﻿#ifndef UARTULTASONIC_H_
+#define UARTULTASONIC_H_
+
+#define  F_CPU 16000000UL  // 16MHZ
+#include <avr/io.h>
+#include <util/delay.h>  // _delay_ms _delay_us
+#include <avr/interrupt.h> // sei()등
+
+#define TRIG 0
+#define TRIG_PORT PORTA
+#define TRIG_DDR  DDRA
+
+#define ECHO 4
+#define ECHO_PIN PINE // External INT 4
+#define ECHO_DDR DDRE
+
+ 
+#endif /* UARTULTASONIC_H_ */

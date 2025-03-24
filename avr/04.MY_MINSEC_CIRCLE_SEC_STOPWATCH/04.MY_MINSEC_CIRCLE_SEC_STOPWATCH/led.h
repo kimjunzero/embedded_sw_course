@@ -1,0 +1,26 @@
+﻿/*
+ * led.h
+ *
+ * Created: 2025-03-05 오전 10:21:21
+ *  Author: microsoft
+ */ 
+
+#ifndef LED_H_
+#define LED_H_
+#define  F_CPU 16000000UL  // 16MHZ
+#include <avr/io.h>
+#include <util/delay.h>  // _delay_ms _delay_us
+
+void led_all_on(void);
+void led_all_off(void);
+void shift_left_ledon(void);
+void shift_right_ledon(void);
+void shift_left_keep_ledon(void);
+void shift_right_keep_ledon(void);
+void flower_on(void);
+void flower_off(void);
+void led0_on(void);
+void led1_on(void);
+void led2_on(void);
+
+#endif /* LED_H_ */
